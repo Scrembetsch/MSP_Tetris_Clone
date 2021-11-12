@@ -2,6 +2,8 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text;
 using UnityEngine;
+using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 
 public class Playfield : MonoBehaviour
 {
@@ -15,7 +17,7 @@ public class Playfield : MonoBehaviour
     public int Height;
     public int Width;
 
-    [Header("HelpLines")]
+    [Header("Help Lines")]
     [SerializeField]
     private GameObject _VerticalHelpLine;
     [SerializeField]
@@ -33,7 +35,13 @@ public class Playfield : MonoBehaviour
 
     [Header("Score")]
     [SerializeField]
-    private TMPro.TextMeshPro _Score;
+    private TMPro.TextMeshProUGUI _Score;
+
+    [Header("Game Over")]
+    [SerializeField]
+    private GameObject _GameOverUi;
+    [SerializeField]
+    private Button _RestartButton;
     #endregion
 
     #region Fields
@@ -42,6 +50,7 @@ public class Playfield : MonoBehaviour
     private Group _NextGroup;
 
     private int _CurrentScore;
+    private bool _GameOver;
     #endregion
 
     #region Mono
@@ -49,32 +58,43 @@ public class Playfield : MonoBehaviour
     {
         Grid = new GroupPart[Width, Height];
         _GroupController = GetComponent<GroupController>();
+        _GameOverUi.SetActive(false);
+        _RestartButton.onClick.AddListener(RestartGame);
     }
 
     private void Start()
     {
         SpawnNext();
         SpawnHelpLines();
+        UpdateScore();
     }
     #endregion
 
     #region Spawner
     public void SpawnNext()
     {
-        if(_NextGroup == null)
+        if (!_GameOver)
         {
+            if (_NextGroup == null)
+            {
+                SpawnNextGroup();
+            }
+
+            Group currentGroup = _NextGroup;
             SpawnNextGroup();
+
+            Vector3 spawnPosition = transform.position;
+            spawnPosition.y += Height - 1;
+            spawnPosition.x += Width / 2;
+
+            currentGroup.transform.position = spawnPosition;
+            _GroupController.CurrentGroup = currentGroup;
+            if (_GroupController.GameOverCheck())
+            {
+                _GameOver = true;
+                ShowGameOver();
+            }
         }
-
-        Group currentGroup = _NextGroup;
-        SpawnNextGroup();
-
-        Vector3 spawnPosition = transform.position;
-        spawnPosition.y += Height - 5;
-        spawnPosition.x += Width / 2;
-
-        currentGroup.transform.position = spawnPosition;
-        _GroupController.CurrentGroup = currentGroup;
     }
 
     private void SpawnNextGroup()
@@ -102,7 +122,11 @@ public class Playfield : MonoBehaviour
 
     public bool IsGridPointFree(Vector2Int position)
     {
-        return Grid[position.x, position.y] == null;
+        if(position.y < Height)
+        {
+            return Grid[position.x, position.y] == null;
+        }
+        return true;
     }
 
     public static Vector2Int ConvertPositionToGridPoint(Vector3 position)
@@ -162,6 +186,7 @@ public class Playfield : MonoBehaviour
 
     public void DeleteFullRows()
     {
+        int numFullRows = 0;
         for(int y = 0; y < Height; y++)
         {
             if (IsRowFull(y))
@@ -169,7 +194,29 @@ public class Playfield : MonoBehaviour
                 DeleteRow(y);
                 DecreaseAbove(y);
                 y--;
+                numFullRows++;
             }
+        }
+        switch (numFullRows)
+        {
+            case 1:
+                AddScore(40);
+                break;
+
+            case 2:
+                AddScore(100);
+                break;
+
+            case 3:
+                AddScore(300);
+                break;
+
+            case 4:
+                AddScore(1200);
+                break;
+
+            default:
+                break;
         }
     }
     #endregion
@@ -203,9 +250,29 @@ public class Playfield : MonoBehaviour
     #endregion
 
     #region Score
-    private void AddScore()
+    private void AddScore(int score)
     {
+        _CurrentScore += score;
+        UpdateScore();
+    }
 
+    private void UpdateScore()
+    {
+        _Score.text = _CurrentScore.ToString();
+    }
+    #endregion
+
+    #region Game Over
+    private void ShowGameOver()
+    {
+        _GameOverUi.SetActive(true);
+        Destroy(_GroupController.CurrentGroup.gameObject);
+        _GroupController.CurrentGroup = null;
+    }
+
+    private void RestartGame()
+    {
+        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
     }
     #endregion
 }

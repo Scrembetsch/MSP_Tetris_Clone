@@ -36,7 +36,10 @@ public class GroupController : MonoBehaviour
 
     private void Update()
     {
-        UpdatePosition();
+        if(CurrentGroup != null)
+        {
+            UpdatePosition();
+        }
     }
     #endregion
 
@@ -107,36 +110,39 @@ public class GroupController : MonoBehaviour
 
     public void DoAction(ControlKey controlKey)
     {
-        switch (controlKey)
+        if (CurrentGroup != null)
         {
-            case ControlKey.LeftArrow:
-                MoveInDirection(Vector3.left);
-                break;
+            switch (controlKey)
+            {
+                case ControlKey.LeftArrow:
+                    MoveInDirection(Vector3.left);
+                    break;
 
-            case ControlKey.RightArrow:
-                MoveInDirection(Vector3.right);
-                break;
+                case ControlKey.RightArrow:
+                    MoveInDirection(Vector3.right);
+                    break;
 
-            case ControlKey.UpArrow:
-                if(!CurrentGroup.BlockRotation)
-                {
-                    RotateGroup(Vector3.forward * 90);
-                }
-                break;
+                case ControlKey.UpArrow:
+                    if (!CurrentGroup.BlockRotation)
+                    {
+                        RotateGroup(Vector3.forward * 90);
+                    }
+                    break;
 
-            case ControlKey.DownArrow:
-                if (!MoveInDirection(Vector3.down))
-                {
-                    InsertCurrentGridPosition();
-                    _Playfield.DeleteFullRows();
-                    _Playfield.SpawnNext();
-                }
+                case ControlKey.DownArrow:
+                    if (!MoveInDirection(Vector3.down))
+                    {
+                        InsertCurrentGridPosition();
+                        _Playfield.DeleteFullRows();
+                        _Playfield.SpawnNext();
+                    }
 
-                _LastFall = Time.time;
-                break;
+                    _LastFall = Time.time;
+                    break;
 
-            default:
-                break;
+                default:
+                    break;
+            }
         }
     }
 
@@ -191,6 +197,11 @@ public class GroupController : MonoBehaviour
     #endregion
 
     #region Grid Helpers
+    public bool GameOverCheck()
+    {
+        return !IsValidGridPosition();
+    }
+
     private bool IsValidGridPosition()
     {
         for(int i = 0; i < CurrentGroup.gameObject.transform.childCount; i++)
