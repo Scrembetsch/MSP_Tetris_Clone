@@ -8,15 +8,11 @@ using UnityEngine.UI;
 public class Playfield : MonoBehaviour
 {
     #region Constants
-    private const int _DefaultHeight = 20;
-    private const int _DefaultWidth = 10;
+    private const int c_DefaultHeight = 20;
+    private const int c_DefaultWidth = 10;
     #endregion
 
     #region Inspector
-    [Header("Playfield")]
-    public int Height;
-    public int Width;
-
     [Header("Help Lines")]
     [SerializeField]
     private GameObject _VerticalHelpLine;
@@ -56,7 +52,7 @@ public class Playfield : MonoBehaviour
     #region Mono
     private void Awake()
     {
-        Grid = new GroupPart[Width, Height];
+        Grid = new GroupPart[c_DefaultWidth, c_DefaultHeight];
         _GroupController = GetComponent<GroupController>();
         _GameOverUi.SetActive(false);
         _RestartButton.onClick.AddListener(RestartGame);
@@ -84,8 +80,8 @@ public class Playfield : MonoBehaviour
             SpawnNextGroup();
 
             Vector3 spawnPosition = transform.position;
-            spawnPosition.y += Height - 1;
-            spawnPosition.x += Width / 2;
+            spawnPosition.y += c_DefaultHeight - 1;
+            spawnPosition.x += c_DefaultWidth / 2;
 
             currentGroup.transform.position = spawnPosition;
             _GroupController.CurrentGroup = currentGroup;
@@ -116,13 +112,13 @@ public class Playfield : MonoBehaviour
     public bool IsInsideBorder(Vector2Int position)
     {
         return position.x >= 0
-            && position.x < Width
+            && position.x < c_DefaultWidth
             && position.y >= 0;
     }
 
     public bool IsGridPointFree(Vector2Int position)
     {
-        if(position.y < Height)
+        if(position.y < c_DefaultHeight)
         {
             return Grid[position.x, position.y] == null;
         }
@@ -141,7 +137,7 @@ public class Playfield : MonoBehaviour
     #region Grid Controller
     private void DeleteRow(int y)
     {
-        for (int x = 0; x < Width; x++)
+        for (int x = 0; x < c_DefaultWidth; x++)
         {
             Grid[x, y].Destroy();
             Grid[x, y] = null;
@@ -151,7 +147,7 @@ public class Playfield : MonoBehaviour
     private void DecreaseRow(int y)
     {
         int yLower = y - 1;
-        for (int x = 0; x < Width; x++)
+        for (int x = 0; x < c_DefaultWidth; x++)
         {
             if (Grid[x, y] != null)
             {
@@ -166,7 +162,7 @@ public class Playfield : MonoBehaviour
     private void DecreaseAbove(int y)
     {
         y++;
-        for(; y < Height; y++)
+        for(; y < c_DefaultHeight; y++)
         {
             DecreaseRow(y);
         }
@@ -174,7 +170,7 @@ public class Playfield : MonoBehaviour
 
     private bool IsRowFull(int y)
     {
-        for(int x = 0; x < Width; x++)
+        for(int x = 0; x < c_DefaultWidth; x++)
         {
             if(Grid[x, y] == null)
             {
@@ -187,7 +183,7 @@ public class Playfield : MonoBehaviour
     public void DeleteFullRows()
     {
         int numFullRows = 0;
-        for(int y = 0; y < Height; y++)
+        for(int y = 0; y < c_DefaultHeight; y++)
         {
             if (IsRowFull(y))
             {
@@ -224,11 +220,11 @@ public class Playfield : MonoBehaviour
     #region Help Lines
     private void SpawnHelpLines()
     {
-        float verticalSpacing = (float)_DefaultHeight / Height;
-        float horizontalSpacing = (float)_DefaultWidth / Width;
+        float verticalSpacing = (float)c_DefaultHeight / c_DefaultHeight;
+        float horizontalSpacing = (float)c_DefaultWidth / c_DefaultWidth;
 
         Transform horizontalParent = _HorizontalHelpLine.transform.parent;
-        for(int y = 0; y < Height - 1; y++)
+        for(int y = 0; y < c_DefaultHeight - 1; y++)
         {
             Instantiate(_HorizontalHelpLine,
                 new Vector3(_HorizontalHelpLine.transform.position.x, _BottomBorder.transform.position.y + verticalSpacing + y * verticalSpacing, _HorizontalHelpLine.transform.position.z),
@@ -238,7 +234,7 @@ public class Playfield : MonoBehaviour
         Destroy(_HorizontalHelpLine);
 
         Transform verticalParent = _VerticalHelpLine.transform.parent;
-        for (int x = 0; x < Width - 1; x++)
+        for (int x = 0; x < c_DefaultWidth - 1; x++)
         {
             Instantiate(_VerticalHelpLine,
                 new Vector3(_LeftBorder.transform.position.x + horizontalSpacing + x * horizontalSpacing, _VerticalHelpLine.transform.position.y, _VerticalHelpLine.transform.position.z),
